@@ -1,10 +1,12 @@
-﻿namespace Interactions.Util
+﻿using System;
+
+namespace Capabilities.Util
 {
     public static partial class Convert
     {
         public static float ScaledFloat(ulong input)
         {
-            return (float) (long) input / long.MaxValue;
+            return (float) input / ulong.MaxValue;
         }
     }
 }

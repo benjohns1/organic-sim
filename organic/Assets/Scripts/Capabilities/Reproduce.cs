@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Sim;
 using Unity;
 using UnityEngine;
-using Convert = Interactions.Util.Convert;
+using Convert = Capabilities.Util.Convert;
 using Input = Sim.Input;
 using Object = UnityEngine.Object;
 
-namespace Interactions
+namespace Capabilities
 {
-    public class ReproduceFactory : InteractionFactory
+    public class ReproduceFactory : CapabilityFactory
     {
         private readonly Transform transform;
         private readonly long copyCost;
@@ -19,13 +21,13 @@ namespace Interactions
             this.copyCost = copyCost;
         }
 
-        public override Interaction Create(string dnaParameters)
+        public override Capability Create(StringReader genome)
         {
             return new Reproduce(transform, copyCost);
         } 
     }
     
-    public class Reproduce : Interaction
+    public class Reproduce : Capability
     {
         private readonly Transform t;
         private readonly ulong copyCost;
@@ -42,11 +44,16 @@ namespace Interactions
         {
             var output = new Output
             {
-                Data = 0,
+                Data = new ulong[]{0},
                 Energy = -BaseEnergyCost,
             };
+            
+            if (input.Data[0] == 0 || input.AvailableEnergy <= BaseEnergyCost)
+            {
+                return output;
+            }
 
-            var energyAmount = (ulong) (Convert.ScaledFloat(input.Data[0]) * input.AvailableEnergy);
+            var energyAmount = (ulong) (Convert.ScaledFloat(input.Data[0]) * (input.AvailableEnergy - BaseEnergyCost));
             if (energyAmount < MinEnergyAmount || energyAmount < BaseEnergyCost)
             {
                 return output;
@@ -58,7 +65,7 @@ namespace Interactions
                 return output;
             }
 
-            var child = Object.Instantiate(t.gameObject, t.position + new Vector3(0,0,5f), t.rotation);
+            var child = Object.Instantiate(t.gameObject, t.position + new Vector3(0,0,5f), t.rotation, t);
             if (child == null)
             {
                 return output;
@@ -70,9 +77,10 @@ namespace Interactions
                 return output;
             }
 
+            go.Initialize(t.gameObject.GetComponent<Organism>().Config);
             go.Birth(energyAmount, true);
 
-            output.Data = input.Data[0];
+            output.Data = new []{ulong.MaxValue};
             output.Energy = -(long) cost;
             return output;
         }

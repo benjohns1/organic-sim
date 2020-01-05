@@ -1,10 +1,10 @@
-﻿using Interactions;
+﻿using Capabilities;
 using UnityEngine;
 
 namespace Unity
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class Food : MonoBehaviour, IEdible, ICarcass
+    public class Food : MonoBehaviour, IEdible
     {
         private Sim.Food food;
         
@@ -25,11 +25,6 @@ namespace Unity
             }
 
             return eaten;
-        }
-
-        public void SetEnergy(long amount)
-        {
-            energy = amount;
         }
     }
 }

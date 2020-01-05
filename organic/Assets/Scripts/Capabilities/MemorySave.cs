@@ -1,25 +1,27 @@
-﻿using Interactions.Util;
+﻿using System.Collections.Generic;
+using System.IO;
+using Capabilities.Util;
 using Sim;
 using Input = Sim.Input;
 
-namespace Interactions
+namespace Capabilities
 {
-    public class MemorySaveFactory : InteractionFactory
+    public class MemorySaveFactory : CapabilityFactory
     {
-        private Memory memory;
+        private readonly Memory memory;
         
         public MemorySaveFactory(Memory memory)
         {
             this.memory = memory;
         }
         
-        public override Interaction Create(string dnaParameters)
+        public override Capability Create(StringReader genome)
         {
-            return new MemorySave(this.memory);
+            return new MemorySave(memory);
         } 
     }
     
-    public class MemorySave : Interaction
+    public class MemorySave : Capability
     {
         private readonly Memory memory;
         private const long EnergyCost = 1;
@@ -34,7 +36,7 @@ namespace Interactions
             memory.Data = input.Data[0];
             return new Output
             {
-                Data = input.Data[0],
+                Data = new []{input.Data[0]},
                 Energy = -EnergyCost,
             };
         }

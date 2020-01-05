@@ -1,4 +1,4 @@
-﻿using Interactions;
+﻿using UnityEngine;
 
 namespace Sim.Organism
 {
@@ -15,19 +15,22 @@ namespace Sim.Organism
             this.brain = brain;
         }
 
-        public void Tick()
+        public object Tick()
         {
             if (dead)
             {
-                return;
+                return "dead";
             }
 
-            energy = brain.Tick(energy);
+            var brainOut = brain.Tick(energy);
+            energy = brainOut.RemainingEnergy;
             
             if (energy <= 0)
             {
                 Die();
             }
+            
+            return string.Join("\n", brainOut.Debug);
         }
 
         private void Die()

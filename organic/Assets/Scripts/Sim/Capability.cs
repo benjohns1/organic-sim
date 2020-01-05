@@ -1,11 +1,14 @@
-﻿namespace Sim
+﻿using System.Collections.Generic;
+using System.IO;
+
+namespace Sim
 {
-    public abstract class InteractionFactory
+    public abstract class CapabilityFactory
     {
-        public abstract Interaction Create(string dnaParameters);
+        public abstract Capability Create(StringReader genome);
     }
     
-    public abstract class Interaction
+    public abstract class Capability
     {
         public abstract Output Run(Input input);
 
@@ -23,7 +26,7 @@
 
     public struct Output
     {
-        public ulong Data;
+        public ulong[] Data;
         public long Energy;
     }
 }

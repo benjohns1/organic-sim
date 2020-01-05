@@ -1,22 +1,30 @@
-﻿using Sim;
+﻿using System.Collections.Generic;
+using System.IO;
+using Sim;
 using Input = Sim.Input;
 
-namespace Interactions
+namespace Capabilities
 {
-    public class RandomFactory : InteractionFactory
+    public class RandomFactory : CapabilityFactory
     {
-        public override Interaction Create(string dnaParameters)
+        private readonly int? seed;
+
+        public RandomFactory(int? seed)
         {
-            return new Random();
+            this.seed = seed;
+        }
+
+        public override Capability Create(StringReader genome)
+        {
+            return new Random(seed);
         } 
     }
     
-    public class Random : Interaction
+    public class Random : Capability
     {
-        private readonly int? seed = null;
         private readonly System.Random random;
         
-        public Random()
+        public Random(int? seed)
         {
             random = seed == null ? new System.Random() : new System.Random((int)seed);
         }
@@ -30,7 +38,7 @@ namespace Interactions
         {
             return new Output
             {
-                Data = RandomUlong(),
+                Data = new []{RandomUlong()},
                 Energy = -1,
             };
         }

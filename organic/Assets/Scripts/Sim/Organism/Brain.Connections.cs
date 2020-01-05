@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Sim.Organism
 {
@@ -6,27 +7,31 @@ namespace Sim.Organism
     {
         private class Connections
         {
-            private readonly Queue<ulong> inputs = new Queue<ulong>();
-            private readonly Queue<ulong> outputs = new Queue<ulong>();
+            private readonly Queue<ulong> queue = new Queue<ulong>();
+
+            public void Clear()
+            {
+                queue.Clear();
+            }
 
             public ulong Get()
             {
-                return inputs.Count > 0 ? inputs.Dequeue() : 0;
+                return queue.Count > 0 ? queue.Dequeue() : 0;
             }
 
-            public void Put(ulong val)
+            public void Put(IEnumerable<ulong> values)
             {
-                outputs.Enqueue(val);
-            }
-
-            public void NextLayer()
-            {
-                while (outputs.Count > 0)
+                foreach (var value in values)
                 {
-                    inputs.Enqueue(outputs.Dequeue());
+                    queue.Enqueue(value);
                 }
+            }
 
-                outputs.Clear();
+            public override string ToString()
+            {
+                return queue.Count > 0
+                    ? $"[{string.Join(",", queue.Select(i => (float) i / ulong.MaxValue))}]"
+                    : "";
             }
         }
     }

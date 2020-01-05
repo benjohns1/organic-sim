@@ -1,4 +1,4 @@
-﻿namespace Interactions.Util
+﻿namespace Capabilities.Util
 {
     public class Memory
     {

@@ -1,8 +1,6 @@
 ﻿using System;
-using UnityEngine;
-using Input = Sim.Input;
 
-namespace Interactions.Util
+namespace Capabilities.Util
 {
     public static partial class Convert
     {
