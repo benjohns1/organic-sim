@@ -2,25 +2,31 @@
 using System.IO;
 using Capabilities.Util;
 using Sim;
-using Input = Sim.Input;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
     public class DecideFactory : CapabilityFactory
     {
-        public override Capability Create(StringReader genome)
+        public override string HumanReadableName => $"{GetType().Name}";
+
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new Decide();
-        } 
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new Decide(hr);
+        }
     }
     
     public class Decide : Capability
     {
         private const long EnergyCost = 1;
 
-        public override int GetInputCount()
+        public override int InputCount => 2;
+
+        public Decide(HumanReadable hr)
         {
-            return 2;
+            HumanReadable = hr;
         }
 
         public override Output Run(Input input)

@@ -2,22 +2,25 @@
 using System.IO;
 using Capabilities.Util;
 using Sim;
-using Input = Sim.Input;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
     public class MemoryLoadFactory : CapabilityFactory
     {
         private readonly Memory memory;
+        public override string HumanReadableName => $"{GetType().Name}";
         
         public MemoryLoadFactory(Memory memory)
         {
             this.memory = memory;
         }
         
-        public override Capability Create(StringReader genome)
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new MemoryLoad(memory);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new MemoryLoad(hr, memory);
         } 
     }
     
@@ -26,14 +29,15 @@ namespace Capabilities
         private readonly Memory memory;
         private const long EnergyCost = 1;
 
-        public MemoryLoad(Memory memory)
+        public MemoryLoad(HumanReadable hr, Memory memory)
         {
+            HumanReadable = hr;
             this.memory = memory;
         }
 
-        public override int GetInputCount()
+        public override int InputCount
         {
-            return 0;
+            get { return 0; }
         }
 
         public override Output Run(Input input)

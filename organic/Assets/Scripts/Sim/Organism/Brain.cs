@@ -29,7 +29,7 @@ namespace Sim.Organism
                 var input = LoadInput(availableEnergy, capability);
                 var output = capability.Run(input);
                 connections.Put(output.Data);
-                debug.Add($"{capability.GetType().Name}({string.Join(", ", input.Data.Select(d => (float) d / ulong.MaxValue))}) -> ({string.Join(", ", output.Data.Select(d => (float) d / ulong.MaxValue))})   - {connections}");
+                debug.Add($"{capability.HumanReadable}\t({string.Join(", ", input.Data.Select(d => (float) d / ulong.MaxValue))}) ->\t({string.Join(", ", output.Data.Select(d => (float) d / ulong.MaxValue))})\t{connections}");
                 
                 if (output.Energy > 0)
                 {
@@ -59,18 +59,18 @@ namespace Sim.Organism
 
         private Input LoadInput(ulong availableEnergy, Capability capability)
         {
-            var inputCount = capability.GetInputCount();
-            var input = new Input
-            {
-                Data = new ulong[inputCount],
-                AvailableEnergy = availableEnergy,
-            };
+            var inputCount = capability.InputCount;
+            var data = new ulong[inputCount];
             for (var i = 0; i < inputCount; i++)
             {
-                input.Data[i] = connections.Get();
+                data[i] = connections.Get();
             }
 
-            return input;
+            return new Input
+            {
+                Data = data,
+                AvailableEnergy = availableEnergy,
+            };
         }
     }
 }

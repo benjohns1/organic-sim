@@ -15,10 +15,14 @@ namespace Unity
         [SerializeField] private float spawnRadius = 20;
         [SerializeField] private int tickCheckInterval = 100;
 
-        [SerializeField] private int startingGenomeLength = 5;
-        [SerializeField] private int startingGenomeCount = 1;
-        [SerializeField] private string[] genomes;
+        [SerializeField] private int randomGenomeLength = 5;
+        [SerializeField] private int randomGenomeCount = 1;
+        [SerializeField] private List<string> genomes = new List<string>();
+        
+        // ReSharper disable once StringLiteralTypo
         [SerializeField] private string dialect = "ABCD";
+        [SerializeField] private Transform organismParent;
+        [SerializeField] private Transform foodParent;
 
         [SerializeField] private ulong startingEnergy = 10000;
 
@@ -34,17 +38,21 @@ namespace Unity
             
             SpawnFood(foodCount);
 
-            genomes = RandomGenomes();
+            genomes.AddRange(RandomGenomes(randomGenomeCount));
             for (var i = 0; i < organismCount; i++)
             {
-                var go = Instantiate(organismPrefab, Random.insideUnitSphere * spawnRadius, Random.rotation);
+                var go = Instantiate(organismPrefab, Random.insideUnitSphere * spawnRadius, Random.rotation, organismParent);
                 var organism = go.GetComponent<Organism>();
                 organism.Initialize(new OrganismConfig
                 {
-                    Seed = seed,
+                    Seed = Random.Range(int.MinValue, int.MaxValue),
                     Dialect = dialect.ToCharArray(),
+                    StartingEnergy = startingEnergy,
+                    Mutate = false,
+                    NewGenome = genomes[Random.Range(0, genomes.Count)],
+                    Generation = 1,
+                    Born = Time.frameCount,
                 });
-                organism.Birth(startingEnergy, false, genomes[Random.Range(0, genomes.Length)]);
             }
         }
 
@@ -70,18 +78,18 @@ namespace Unity
         {
             for (var i = 0; i < count; i++)
             {
-                Instantiate(foodPrefab, Random.insideUnitSphere * spawnRadius, Random.rotation, transform);
+                Instantiate(foodPrefab, Random.insideUnitSphere * spawnRadius, Random.rotation, foodParent);
             }
         }
 
-        private string[] RandomGenomes()
+        private IEnumerable<string> RandomGenomes(int count)
         {
             var newGenomes = new List<string>();
             var random = new System.Random(seed);
-            for (var i = 0; i < startingGenomeCount; i++)
+            for (var i = 0; i < count; i++)
             {
                 var genome = new StringBuilder();
-                for (var j = 0; j < startingGenomeLength; j++)
+                for (var j = 0; j < randomGenomeLength; j++)
                 {
                     var index = random.Next(0, dialect.Length);
                     genome.Append(dialect[index]);

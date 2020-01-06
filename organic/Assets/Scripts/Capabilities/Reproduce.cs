@@ -1,29 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using Sim;
+using Sim.Organism.Genome;
 using Unity;
 using UnityEngine;
 using Convert = Capabilities.Util.Convert;
-using Input = Sim.Input;
+using Input = Sim.Organism.Genome.Input;
 using Object = UnityEngine.Object;
 
 namespace Capabilities
 {
     public class ReproduceFactory : CapabilityFactory
     {
+        public override string HumanReadableName { get; }
         private readonly Transform transform;
         private readonly long copyCost;
+        private readonly Random random;
 
         public ReproduceFactory(Transform transform, long copyCost)
         {
             this.transform = transform;
             this.copyCost = copyCost;
+            HumanReadableName = $"{GetType().Name}({copyCost})";
+            
         }
 
-        public override Capability Create(StringReader genome)
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new Reproduce(transform, copyCost);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new Reproduce(hr, transform, copyCost);
         } 
     }
     
@@ -33,11 +37,25 @@ namespace Capabilities
         private readonly ulong copyCost;
         private const long BaseEnergyCost = 1000;
         private const long MinEnergyAmount = 5000;
+        private readonly Transform genGroup;
+        private readonly Organism parent;
         
-        public Reproduce(Transform t, long copyCost)
+        public Reproduce(HumanReadable hr, Transform t, long copyCost)
         {
+            HumanReadable = hr;
             this.t = t;
             this.copyCost = (ulong) Math.Abs(copyCost);
+            parent = t.gameObject.GetComponent<Organism>();
+            var groupName = $"Gen{parent.Config.Generation + 1}";
+            var genGo = GameObject.Find(groupName);
+            if (genGo != null)
+            {
+                genGroup = genGo.transform;
+                return;
+            }
+            var go = new GameObject {name = groupName};
+            go.transform.SetParent(t.parent.parent);
+            genGroup = go.transform;
         }
         
         public override Output Run(Input input)
@@ -65,7 +83,7 @@ namespace Capabilities
                 return output;
             }
 
-            var child = Object.Instantiate(t.gameObject, t.position + new Vector3(0,0,5f), t.rotation, t);
+            var child = Object.Instantiate(t.gameObject, t.position + new Vector3(0,0,5f), t.rotation, genGroup);
             if (child == null)
             {
                 return output;
@@ -77,8 +95,15 @@ namespace Capabilities
                 return output;
             }
 
-            go.Initialize(t.gameObject.GetComponent<Organism>().Config);
-            go.Birth(energyAmount, true);
+            var config = parent.Config;
+            config.Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            config.StartingEnergy = energyAmount;
+            config.Mutate = true;
+            config.NewGenome = null;
+            config.Generation++;
+            config.Born = Time.frameCount;
+
+            go.Initialize(config);
 
             output.Data = new []{ulong.MaxValue};
             output.Energy = -(long) cost;

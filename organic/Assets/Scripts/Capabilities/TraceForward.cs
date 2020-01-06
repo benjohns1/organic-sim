@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using Sim;
+using Sim.Organism.Genome;
 using UnityEngine;
 using Convert = Capabilities.Util.Convert;
-using Input = Sim.Input;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
     public class TraceForwardFactory : CapabilityFactory
     {
+        public override string HumanReadableName => $"{GetType().Name}";
         private readonly Transform transform;
 
         public TraceForwardFactory(Transform transform)
@@ -17,9 +19,10 @@ namespace Capabilities
             this.transform = transform;
         }
 
-        public override Capability Create(StringReader genome)
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new TraceForward(transform);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new TraceForward(hr, transform);
         } 
     }
     
@@ -30,8 +33,9 @@ namespace Capabilities
         private const float EnergyScalar = 5f;
         private const long MinCost = 1;
         
-        public TraceForward(Transform transform)
+        public TraceForward(HumanReadable hr, Transform transform)
         {
+            HumanReadable = hr;
             this.transform = transform;
         }
         

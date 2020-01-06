@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using Sim;
-using Input = Sim.Input;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
@@ -12,11 +12,15 @@ namespace Capabilities
         public StaticFactory(ulong value)
         {
             this.value = value;
+            HumanReadableName = $"{GetType().Name}({Util.Convert.ScaledFloat(value)})";
         }
-        
-        public override Capability Create(StringReader genome)
+
+        public override string HumanReadableName { get; }
+
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new Static(value);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new Static(hr, value);
         }
     }
     
@@ -24,16 +28,14 @@ namespace Capabilities
     {
         private readonly ulong value;
         
-        public Static(ulong value)
+        public Static(HumanReadable hr, ulong value)
         {
+            HumanReadable = hr;
             this.value = value;
         }
-        
-        public override int GetInputCount()
-        {
-            return 0;
-        }
-        
+
+        public override int InputCount => 0;
+
         public override Output Run(Input input)
         {
             return new Output

@@ -1,20 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Sim;
-using Input = Sim.Input;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
     public class InvertFactory : CapabilityFactory
     {   
-        public override Capability Create(StringReader genome)
+        public override string HumanReadableName => $"{GetType().Name}";
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new Invert();
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new Invert(hr);
         }
     }
     
     public class Invert : Capability
-    {   
+    {
+        public Invert(HumanReadable hr)
+        {
+            HumanReadable = hr;
+        }
+
         public override Output Run(Input input)
         {
             return new Output

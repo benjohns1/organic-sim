@@ -2,23 +2,26 @@
 using System.Collections.Generic;
 using System.IO;
 using Sim;
+using Sim.Organism.Genome;
 using UnityEngine;
 using Convert = Capabilities.Util.Convert;
-using Input = Sim.Input;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
     public class MoveForwardFactory : CapabilityFactory
     {
+        public override string HumanReadableName => $"{GetType().Name}";
         private readonly Rigidbody rb;
         public MoveForwardFactory(Rigidbody rb)
         {
             this.rb = rb;
         }
 
-        public override Capability Create(StringReader genome)
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new MoveForward(rb);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new MoveForward(hr, rb);
         } 
     }
     
@@ -29,8 +32,9 @@ namespace Capabilities
         private const float EnergyScalar = 10f;
         private const long MinCost = 1;
         
-        public MoveForward(Rigidbody rb)
+        public MoveForward(HumanReadable hr, Rigidbody rb)
         {
+            HumanReadable = hr;
             this.rb = rb;
         }
         

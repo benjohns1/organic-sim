@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Capabilities;
 using Capabilities.Util;
-using JetBrains.Annotations;
-using Sim;
 using Sim.Organism;
 using Sim.Organism.Genome;
 using UnityEngine;
+using Util;
 
 namespace Unity
 {
-
-    public class OrganismConfig
+    public struct OrganismConfig
     {
         public int? Seed;
         public char[] Dialect;
+        public ulong StartingEnergy;
+        public bool Mutate;
+        public string NewGenome;
+        public int Generation;
+        public int Born;
     }
     
     [RequireComponent(typeof(Rigidbody))]
@@ -29,15 +33,21 @@ namespace Unity
         [SerializeField]
         private ulong energy = 100000;
 
-        [SerializeField] private string genome = "1|TrFwd|Fan|MvFwd.Rnd.~|Eat.Dec|H.TrqHrz.1|H.MvFwd";
+        [SerializeField] private string genome;
         
         [SerializeField]
         private List<string> genomeAncestors = new List<string>();
+
+        [SerializeField] private bool debug = false;
 
         public Factory factory;
 
         public OrganismConfig Config { get; private set; }
 
+        [SerializeField] private int seed;
+        [SerializeField] private int born;
+        
+        
         public void Awake()
         {
             rb = GetComponent<Rigidbody>();
@@ -45,6 +55,15 @@ namespace Unity
 
         public void Initialize(OrganismConfig config)
         {
+            if (config.Dialect == null || config.Dialect.Length <= 0)
+            {
+                throw new Exception("invalid organism config");
+            }
+
+            name = $"Gen{config.Generation}";
+            seed = config.Seed ?? 0;
+            born = config.Born;
+            
             Config = config;
             var mem1 = new Memory();
             var t = transform;
@@ -71,13 +90,20 @@ namespace Unity
             
             var mutationRates = new MutationRates
             {
-                DeleteBase = 0.1f,
-                AddBase = 0.2f,
+                DeleteBase = 0.05f,
+                AddBase = 0.1f,
             };
             factory = new Factory(mapper, mutationRates, config.Seed);
+
+            // if (mapper.GeneMap != null)
+            // {
+            //     Debug.Log(string.Join("\n", mapper.GeneMap.Select(g => $"{g.Key}: {g.Value?.HumanReadableName}")));
+            // }
+            
+            Birth(config.StartingEnergy, config.Mutate, config.NewGenome);
         }
 
-        public void Birth(ulong newEnergy, bool mutate, [CanBeNull] string newGenome = null)
+        private void Birth(ulong newEnergy, bool mutate, string newGenome)
         {
             if (newGenome != null)
             {
@@ -98,31 +124,20 @@ namespace Unity
             organism = new Sim.Organism.Organism(newEnergy, brain);
         }
 
-        public void Start()
-        {
-            if (Config == null)
-            {
-                throw new Exception("organism has not been initialized");
-            }
-
-            if (organism == null)
-            {
-                throw new Exception("organism has not been birthed");
-            }
-        }
-
         public void Update()
         {
             if (organism == null) return;
             
-            var debug = organism.Tick();
-            Debug.Log(debug);
+            var debugValue = organism.Tick();
+            if (debug)
+            {
+                Debug.Log($"--- {name}({GetInstanceID()}) ---\n{debugValue}");
+            }
             isDead = organism.IsDead();
             energy = organism.GetEnergy();
-            if (isDead)
-            {
-                enabled = false;
-            }
+            if (!isDead) return;
+            enabled = false;
+            Destroy(gameObject);
         }
     }
 }

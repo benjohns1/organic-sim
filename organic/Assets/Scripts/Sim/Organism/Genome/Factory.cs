@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Sim.Organism.Genome;
 
 namespace Sim.Organism.Genome
 {
@@ -23,7 +21,7 @@ namespace Sim.Organism.Genome
 
         public Factory(Mapper genomeMapper, MutationRates mutationRates, int? seed)
         {
-            map = genomeMapper.Generate();
+            map = genomeMapper.GeneMap;
             dialect = genomeMapper.Dialect;
             geneLength = genomeMapper.GeneLength;
             
@@ -31,24 +29,34 @@ namespace Sim.Organism.Genome
             random = seed == null ? new Random() : new Random((int) seed);
         }
 
+        private static float FloatThreshold(float val)
+        {
+            return int.MaxValue * Math.Max(0f, Math.Min(1f, val));
+        }
+
         public string Mutate(string genome)
         {
-            var deleteCount = (int) (genome.Length * mutationRates.DeleteBase);
-            for (var i = 0; i < deleteCount; i++)
+            var mutated = new StringBuilder();
+            
+            var deleteThreshold = FloatThreshold(mutationRates.DeleteBase);
+            var addThreshold = FloatThreshold(mutationRates.AddBase);
+            foreach (var currentBase in genome)
             {
-                var index = random.Next(0, dialect.Count);
-                genome = genome.Remove(index, 1);
+                if (random.Next(0, int.MaxValue) > deleteThreshold)
+                {
+                    mutated.Append(currentBase);
+                }
+                
+                if (random.Next(0, int.MaxValue) > addThreshold)
+                {
+                    continue;
+                }
+                
+                var newBase = dialect[random.Next(0, dialect.Count)];
+                mutated.Append(newBase);
             }
 
-            var addCount = (int) (genome.Length * mutationRates.AddBase);
-            for (var i = 0; i < addCount; i++)
-            {
-                var newElement = random.Next(0, dialect.Count);
-                var index = random.Next(0, dialect.Count);
-                genome = genome.Insert(index, dialect[newElement].ToString());
-            }
-
-            return genome;
+            return mutated.ToString();
         }
         
         public IEnumerable<Capability> ParseGenome(string genome)
@@ -84,7 +92,7 @@ namespace Sim.Organism.Genome
                 throw new Exception($"no gene '{gene}' found in genome map");
             }
 
-            return capabilityFactory.Create(reader);
+            return capabilityFactory.Create(gene, reader);
         }
     }
 }

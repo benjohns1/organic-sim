@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Sim;
-using Input = Sim.Input;
+﻿using System.IO;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
@@ -12,11 +11,15 @@ namespace Capabilities
         public RandomFactory(int? seed)
         {
             this.seed = seed;
+            HumanReadableName = $"{GetType().Name}({seed})";
         }
 
-        public override Capability Create(StringReader genome)
+        public override string HumanReadableName { get; }
+
+        public override Capability Create(string gene, StringReader genome)
         {
-            return new Random(seed);
+            var hr = new HumanReadable(HumanReadableName, gene);
+            return new Random(hr, seed);
         } 
     }
     
@@ -24,16 +27,14 @@ namespace Capabilities
     {
         private readonly System.Random random;
         
-        public Random(int? seed)
+        public Random(HumanReadable hr, int? seed)
         {
+            HumanReadable = hr;
             random = seed == null ? new System.Random() : new System.Random((int)seed);
         }
-        
-        public override int GetInputCount()
-        {
-            return 0;
-        }
-        
+
+        public override int InputCount => 0;
+
         public override Output Run(Input input)
         {
             return new Output

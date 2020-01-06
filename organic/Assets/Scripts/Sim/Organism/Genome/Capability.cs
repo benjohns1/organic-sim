@@ -1,21 +1,21 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 
-namespace Sim
+namespace Sim.Organism.Genome
 {
     public abstract class CapabilityFactory
     {
-        public abstract Capability Create(StringReader genome);
+        public abstract string HumanReadableName { get; }
+        
+        public abstract Capability Create(string gene, StringReader genome);
     }
-    
+
     public abstract class Capability
     {
         public abstract Output Run(Input input);
 
-        public virtual int GetInputCount()
-        {
-            return 1;
-        }
+        public virtual int InputCount => 1;
+        
+        public HumanReadable HumanReadable { get; protected set; }
     }
     
     public struct Input

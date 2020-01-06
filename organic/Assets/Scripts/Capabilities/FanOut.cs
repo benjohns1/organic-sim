@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using Capabilities.Util;
 using Sim;
-using Input = Sim.Input;
+using Sim.Organism.Genome;
+using Input = Sim.Organism.Genome.Input;
 
 namespace Capabilities
 {
@@ -17,18 +18,25 @@ namespace Capabilities
         {
             this.dialect = dialect.ToList();
             this.maxOutputs = maxOutputs;
+            HumanReadableName = $"{GetType().Name}({maxOutputs})";
         }
 
-        public override Capability Create(StringReader genome)
+        public override string HumanReadableName { get; }
+
+        public override Capability Create(string gene, StringReader genome)
         {
             var c = genome.Read();
             var outputCount = 2;
+            var geneParameters = "";
             if (c != -1)
             {
-                outputCount += Math.Min(dialect.IndexOf((char) c) + 0, maxOutputs);
+                var parameter = (char) c;
+                geneParameters += parameter;
+                outputCount += Math.Min(dialect.IndexOf(parameter) + 0, maxOutputs);
             }
-            
-            return new FanOut(outputCount);
+
+            var hr = new HumanReadable(HumanReadableName, gene, new[] {$"{outputCount}"}, geneParameters);
+            return new FanOut(hr, outputCount);
         } 
     }
     
@@ -39,10 +47,11 @@ namespace Capabilities
         private readonly int outputCount;
         private readonly long energyCost;
 
-        public FanOut(int outputCount)
+        public FanOut(HumanReadable hr, int outputCount)
         {
             this.outputCount = outputCount;
             energyCost = BaseCost + (EnergyCostPerOutput * outputCount);
+            HumanReadable = hr;
         }
 
         public override Output Run(Input input)

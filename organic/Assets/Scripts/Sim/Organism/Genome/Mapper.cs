@@ -10,6 +10,9 @@ namespace Sim.Organism.Genome
         private readonly List<CapabilityFactory> capabilityFactories;
         public int GeneLength { get; }
 
+        private Dictionary<string, CapabilityFactory> geneMap;
+        public Dictionary<string, CapabilityFactory> GeneMap => geneMap ?? (geneMap = Generate());
+
         public Mapper(IEnumerable<char> dialect, IEnumerable<CapabilityFactory> capabilityFactories)
         {
             Dialect = dialect.ToList();
@@ -18,7 +21,7 @@ namespace Sim.Organism.Genome
             GeneLength = (int) Math.Ceiling(Math.Log(this.capabilityFactories.Count, Dialect.Count));
         }
 
-        public Dictionary<string, CapabilityFactory> Generate()
+        private Dictionary<string, CapabilityFactory> Generate()
         {
             var map = new Dictionary<string, CapabilityFactory>();
             var genes = GenerateGenes().ToArray();
